@@ -1,5 +1,25 @@
+# Virtual environment
 myvenv/
+venv/
+
+# Secrets
 .env
+
+# Python cache
 __pycache__/
 *.pyc
+tests/__pycache__/
+agents/__pycache__/
+tools/__pycache__/
+rag/__pycache__/
+
+# Local databases (SQLite checkpointer artifacts from early local testing)
+checkpoints.db
+checkpoints.db-shm
+checkpoints.db-wal
+
+# Logs
 agent.log
+
+# Pytest cache
+.pytest_cache/

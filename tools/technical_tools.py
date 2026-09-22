@@ -1,24 +1,5 @@
 from langchain_core.tools import tool
-
-KNOWLEDGE_BASE = [
-    {
-        "title": "Resetting your password",
-        "content": "Go to Settings > Security > Reset Password. A reset link is sent to your registered email and expires in 15 minutes."
-    },
-    {
-        "title": "App crashes on startup",
-        "content": "Clear the app cache from Settings > Storage. If the crash persists, uninstall and reinstall the latest version."
-    },
-    {
-        "title": "Two-factor authentication setup",
-        "content": "Enable 2FA under Settings > Security > Two-Factor Auth. You can use an authenticator app or SMS codes."
-    },
-    {
-        "title": "Slow loading times",
-        "content": "Slow loading is usually caused by a weak network connection or an outdated app version. Update the app and check your connection speed."
-    },
-]
-
+from rag.vector_store import vector_store
 
 MOCK_SYSTEM_STATUS = {
     "user_101": {"account_status": "active", "last_login": "2026-09-18", "known_issues": []}
@@ -26,25 +7,25 @@ MOCK_SYSTEM_STATUS = {
 
 
 @tool
-def search_docs(query:str) -> str:
-    """Search the technical knowledge base for the article related to query. Return matching articles and content"""
-    query_words=set(query.lower().split())
-    matches=[]
+def search_docs(query: str) -> str:
+    """Search the technical knowledge base for articles relevant to the query.
+    Returns the most relevant passages along with their source article titles."""
+    results = vector_store.similarity_search_with_score(query, k=3)
 
-
-    for article in KNOWLEDGE_BASE:
-        article_words=set((article['title']+ " " + article["content"]).lower().split())
-        if query_words & article_words:
-            matches.append(f"{article['title']}: {article['content']}")
-
-    if not matches:
+    if not results:
         return "No relevant articles found in the knowledge base."
 
-    return "\n\n".join(matches)
+    formatted = []
+    for doc, score in results:
+        title = doc.metadata.get("title", "Untitled")
+        formatted.append(f"[Source: {title}]\n{doc.page_content}")
+
+    return "\n\n".join(formatted)
+
 
 @tool
-def run_diagnostic(user_id:str) -> str:
-    """Run a diagnostic on the user account to identify known issues and system status"""
+def run_diagnostic(user_id: str) -> str:
+    """Run a diagnostic check on a user's account to identify known issues or system status."""
     status = MOCK_SYSTEM_STATUS.get(user_id)
     if not status:
         return f"No system status found for user {user_id}."

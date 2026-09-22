@@ -7,3 +7,7 @@ fastapi
 uvicorn
 langgraph-checkpoint-postgres
 psycopg[binary]
+langchain-postgres
+pgvector
+langchain-text-splitters
+psycopg2-binary
